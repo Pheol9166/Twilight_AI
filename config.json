@@ -1,0 +1,9 @@
+{
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "llm_model": "google/gemma-2-2b-it",
+    "llm_params": {
+        "provider": "nebius",
+        "temperature": 0.3,
+        "max_tokens": 512
+    }
+}
