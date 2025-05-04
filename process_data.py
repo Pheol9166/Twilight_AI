@@ -7,8 +7,8 @@ def process_request(json_input, config):
         chunk_size=config["splitter"].get("CHUNK_SIZE", 1000),
         chunk_overlap=config["splitter"].get("CHUNK_OVERLAP", 200),
     )
-    user_data = json_input["user_data"]
-    user_answer = json_input["user_answer"]
+    user_data = json_input["user"]
+    user_answer = json_input["user"]["answer"]
     books = json_input["books"]
 
     documents = [
