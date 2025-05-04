@@ -11,7 +11,7 @@ def get_filter_id_func(book_data):
         for item in items:
             item_name = item.get("name").strip()
             id = list(filter(lambda x: x["name"] == item_name, book_data))[0]["id"]
-            recommend.append({"id": id, "reason": item.get("reason", "")})
+            recommend.append({"id": id, "AIAnswer": item.get("reason", "")})
 
         return json.dumps({"recommend_books": recommend})
 
