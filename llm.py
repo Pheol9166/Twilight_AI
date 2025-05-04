@@ -30,7 +30,7 @@ class HFChatCompletionLLM(LLM):
         return "hf_chat_completion_llm"
 
 
-def load_llm_model(config):
+def load_llm(config):
     llm_params = config["llm_params"]
     return HFChatCompletionLLM(
         model=config["llm_model"],
