@@ -4,6 +4,7 @@ from huggingface_hub import InferenceClient
 from pydantic import Field
 
 
+#TODO: wrapper 안 쓰는 방법 찾기
 class HFChatCompletionLLM(LLM):
     model: str
     api_key: str
@@ -16,14 +17,19 @@ class HFChatCompletionLLM(LLM):
         super().__init__(**data)
         self.client = InferenceClient(provider=self.provider, api_key=self.api_key)
 
-    def _call(self, prompt, **kwargs):
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=self.max_tokens,
-            temperature=self.temperature,
-        )
-        return completion.choices[0].message["content"]
+    def _call(self, prompt, stop= None, run_manager=None, **kwargs):
+        try:
+            completion = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=self.max_tokens,
+                temperature=self.temperature,
+            )
+            if not completion.choices:
+                raise ValueError("No choices returned from the completion API")
+            return completion.choices[0].message["content"]
+        except Exception as e:
+            raise RuntimeError(f"LLM call failed: {e}")
 
     @property
     def _llm_type(self) -> str:
