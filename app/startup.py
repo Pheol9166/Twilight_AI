@@ -1,4 +1,4 @@
-from utils import load_config, load_prompt, model_setting, api_login
+from app.utils.utils import load_config, load_prompt, model_setting, api_login
 
 
 def initialize_app(config_path: str= "./config.json", prompt_path: str= "./prompt.txt"):

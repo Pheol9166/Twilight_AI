@@ -1,8 +1,9 @@
 from fastapi import APIRouter
-from request import RequestData, RecommendationResponse
-from process_data import split_request, build_documents
-from vectorstore import build_vectorstore, build_retriever
-from rag_chain import build_rag_chain
+from app.data.request import RequestData
+from app.data.response import RecommendationResponse
+from app.services.process_data import split_request, build_documents
+from app.services.vectorstore import build_vectorstore, build_retriever
+from app.services.rag_chain import build_rag_chain
 
 
 def build_routes(app, config, prompt, embedding_model, llm):

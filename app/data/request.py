@@ -21,12 +21,6 @@ class UserData(BaseModel):
 
 
 class RequestData(BaseModel):
-    books: List[Dict[Any, Any]]
-    user_data: Dict[Any, Any]
+    books: List[BookData]
+    user_data: UserData
 
-class ResponseBook(BaseModel):
-    id: int
-    AIAnswer: str
-
-class RecommendationResponse(BaseModel):
-    recommend_books: List[ResponseBook]

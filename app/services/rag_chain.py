@@ -1,7 +1,7 @@
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from operator import itemgetter
-from request import ResponseBook
+from app.data.response import ResponseBook
 
 
 def get_filter_id_func(book_data):

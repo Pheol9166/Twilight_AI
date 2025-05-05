@@ -1,7 +1,6 @@
 from langchain.schema import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-
 def split_request(json_input):
     json_input = json_input.dict()
     user_data = json_input["user_data"]
