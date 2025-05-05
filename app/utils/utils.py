@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 from huggingface_hub import login
-from app.services.embedding import load_embedding_model
-from app.services.llm import load_llm
+from app.services.models import load_llm, load_embedding_model
 import os
 import json
 

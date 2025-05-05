@@ -2,9 +2,10 @@ import os
 from langchain.llms.base import LLM
 from huggingface_hub import InferenceClient
 from pydantic import Field
+from langchain_huggingface import HuggingFaceEmbeddings
 
 
-#TODO: wrapper 안 쓰는 방법 찾기
+# TODO: wrapper 안 쓰는 방법 찾기
 class HFChatCompletionLLM(LLM):
     model: str
     api_key: str
@@ -17,7 +18,7 @@ class HFChatCompletionLLM(LLM):
         super().__init__(**data)
         self.client = InferenceClient(provider=self.provider, api_key=self.api_key)
 
-    def _call(self, prompt, stop= None, run_manager=None, **kwargs):
+    def _call(self, prompt, stop=None, run_manager=None, **kwargs):
         try:
             completion = self.client.chat.completions.create(
                 model=self.model,
@@ -45,3 +46,7 @@ def load_llm(config):
         temperature=llm_params.get("temperature", 0.3),
         max_tokens=llm_params.get("max_tokens", 512),
     )
+
+
+def load_embedding_model(config):
+    return HuggingFaceEmbeddings(model_name=config["embedding_model"])
