@@ -16,7 +16,7 @@
 - 최종 출력은 반드시 JSON 형식으로 하세요.
 예:
 {{
-  "recommended_books": [
+  "recommend_books": [
     {{"name": "책A", "reason": "추천 이유"}},
     {{"name": "책B", "reason": "추천 이유"}},
     {{"name": "책C", "reason": "추천 이유"}}

@@ -1,19 +1,24 @@
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from operator import itemgetter
-import json
+from request import ResponseBook
 
 
 def get_filter_id_func(book_data):
+    name_to_id = {book["name"]: book["id"] for book in book_data}
+
     def filter_id(parsed_output):
         items = parsed_output.get("recommend_books", [])
         recommend = []
         for item in items:
-            item_name = item.get("name").strip()
-            id = list(filter(lambda x: x["name"] == item_name, book_data))[0]["id"]
-            recommend.append({"id": id, "AIAnswer": item.get("reason", "")})
+            item_name = item.get("name", "").strip()
+            book_id = name_to_id.get(item_name)
+            if book_id is None:
+                recommend.append(ResponseBook(id="", AIAnswer=item.get("reason", "")))
+            else:
+                recommend.append(ResponseBook(id=book_id, AIAnswer=item.get("reason", "")))
 
-        return json.dumps({"recommend_books": recommend})
+        return {"recommend_books": recommend}
 
     return filter_id
 
