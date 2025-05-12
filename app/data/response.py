@@ -1,9 +1,6 @@
 from pydantic import BaseModel
-from typing import List
-
-class ResponseBook(BaseModel):
-    id: int
-    AIAnswer: str
 
 class RecommendationResponse(BaseModel):
-    recommend_books: List[ResponseBook]
+    member_id: int
+    book_id: int
+    AI_answer: str
