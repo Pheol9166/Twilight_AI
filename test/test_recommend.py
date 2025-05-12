@@ -2,7 +2,7 @@ import pytest
 import json
 import os
 import httpx
-from test.test_app import app  # FastAPI app
+from test.test_app import app
 from app.data.request import RequestData, BookData, UserData
 
 
@@ -16,7 +16,7 @@ async def test_recommend_books():
         books=[BookData(**book) for book in request_dict["books"]],
         user_data= UserData(**request_dict["user_data"])
     )
-    # ASGITransport 사용
+    
     transport = httpx.ASGITransport(app=app)
 
     async with httpx.AsyncClient(

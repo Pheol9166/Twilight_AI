@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 from fastapi import FastAPI
 from app.startup import initialize_app
 from app.routes import build_routes
