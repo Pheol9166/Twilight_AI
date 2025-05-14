@@ -1,25 +1,24 @@
-from typing import List, Dict
-from app.data.request import BookData, UserData, QuestionAnswer
+from typing import List
+from app.data.request import BookData, UserData, QuestionAnswer, RequestData
 from langchain.schema import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-def split_request(json_input):
-    json_input: Dict = json_input.dict()
-    user_data: UserData = json_input["user_data"]
-    user_answer: List[QuestionAnswer] = json_input["user_data"]["user_answer"]
-    user_data.pop("user_answer", None)  # user 데이터에서 질문 & 답변 제거
-    tags: str = " ".join([answer['match_tag'] for answer in user_answer])
-    qna = [{answer['question']: answer['user_answer']} for answer in user_answer]
-    books: List[BookData] = json_input["books"]
+def split_request(request: RequestData):
+    user_data: UserData = request.memberInfo
+    user_answer: List[QuestionAnswer] = request.memberInfo.questionAnswers
+    user_data.pop("questionAnswers", None)  # user 데이터에서 질문 & 답변 제거
+    tags: str = " ".join([answer.matchingTag for answer in user_answer])
+    qna = [{answer.question: answer.userAnswer} for answer in user_answer]
+    books: List[BookData] = request.bookInfo
 
     return user_data, tags, qna, books
 
 def build_documents(books: List[BookData], config):
     documents = [
         Document(
-            page_content=book["book_desc"],
+            page_content=book["description"],
             metadata={
-                "id": book["id"],
+                "id": book["bookId"],
                 "name": book["name"],
                 "author": book["author"]
             },

@@ -1,28 +1,25 @@
 from pydantic import BaseModel
-from typing import List, Optional
-
+from typing import List
 class BookData(BaseModel):
-    id: int
+    bookId: int
     name: str
     author: str
-    page_count: Optional[int] = None
-    book_desc: str
+    pageCount: int
+    description: str
 
 class QuestionAnswer(BaseModel):
     question: str
-    user_answer: str
-    match_tag: str
+    userAnswer: str
+    matchingTag: str
 
 class UserData(BaseModel):
-    id: int
+    memberId: int
     age: int
     gender: str
-    personality: str
+    personalities: List[str]
     interests: List[str]
-    read_books: List[str]  
-    user_answer: List[QuestionAnswer]  
+    questionAnswers: List[QuestionAnswer]  
 
 class RequestData(BaseModel):
-    books: List[BookData]
-    user_data: UserData
-
+    bookInfo: List[BookData]
+    memberInfo: UserData
