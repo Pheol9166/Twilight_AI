@@ -1,4 +1,5 @@
-import redis
+import redis.asyncio as redis
+import redis.exceptions
 import json
 import asyncio
 from fastapi import FastAPI
@@ -36,35 +37,42 @@ async def send_result_to_backend(result: RecommendationResponse):
 
 
 async def consume_redis_stream(redis_client: redis.Redis):
-    try:
-        redis_client.xgroup_create(STREAM_KEY, GROUP_NAME, id="0", mkstream=True)
-    except redis.exceptions.ResponseError:
-        pass
-
     while True:
-        messages = redis_client.xreadgroup(
-            groupname=GROUP_NAME,
-            consumername="consumer1",
-            streams={STREAM_KEY: ">"},
-            count=1,
-            block=0,
-        )
+        try:
+            redis_client.xgroup_create(STREAM_KEY, GROUP_NAME, id="0", mkstream=True)
+        except redis.exceptions.ResponseError:
+            pass
+        except redis.exceptions.ConnectionError:
+            print("Redis 서버 연결 실패: 서버가 실행 중인지 확인하세요.")
+            return "Redis 서버 연결 실패"        
 
-        for message in messages:
-            _, data = message
-            for msg_id, payload in data:
-                payload_data = json.loads(payload[b"payload"].decode("utf-8"))
-                print("받은 데이터:", payload_data)
+        try:
+            messages = redis_client.xreadgroup(
+                groupname=GROUP_NAME,
+                consumername="consumer1",
+                streams={STREAM_KEY: ">"},
+                count=1,
+                block=0,
+            )
 
-                redis_client.xack(STREAM_KEY, GROUP_NAME, msg_id)
+            for message in messages:
+                _, data = message
+                for msg_id, payload in data:
+                    payload_data = json.loads(payload[b"payload"].decode("utf-8"))
+                    print("받은 데이터:", payload_data)
 
-                request_data = RequestData(**payload_data)
-                result: RecommendationResponse = await generate_recommendation(
-                    request_data
-                )
-                result.member_id = request_data.memberInfo.memberId
+                    await redis_client.xack(STREAM_KEY, GROUP_NAME, msg_id)
 
-                await send_result_to_backend(result)
+                    request_data = RequestData(**payload_data)
+                    result: RecommendationResponse = await generate_recommendation(
+                        request_data
+                    )
+                    result.member_id = request_data.memberInfo.memberId
+
+                    await send_result_to_backend(result)
+        except redis.exceptions.ConnectionError as e:
+            print(f"Redis connection error: {e}, 5초 후 재시도")
+            await asyncio.sleep(5)
 
 
 async def generate_recommendation(request_data: RequestData):
