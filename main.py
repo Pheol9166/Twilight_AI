@@ -36,6 +36,18 @@ async def send_result_to_backend(result: RecommendationResponse):
         print(f"전송 실패: {response.status_code}, {response.text}")
 
 
+async def generate_recommendation(request_data: RequestData):
+    user_data, tags, qna, books = split_request(request_data)
+    documents = build_documents(books, config)
+    vectorstore = build_vectorstore(documents, embedding_model)
+    retriever = build_retriever(vectorstore, config)
+    rag_chain = build_rag_chain(llm, retriever, prompt, books)
+    result = await rag_chain.ainvoke(
+        {"query": tags, "user_profile": user_data, "qna": qna}
+    )
+    return result
+
+
 async def consume_redis_stream(redis_client: redis.Redis):
     while True:
         try:
@@ -44,7 +56,7 @@ async def consume_redis_stream(redis_client: redis.Redis):
             pass
         except redis.exceptions.ConnectionError:
             print("Redis 서버 연결 실패: 서버가 실행 중인지 확인하세요.")
-            return "Redis 서버 연결 실패"        
+            return "Redis 서버 연결 실패"
 
         try:
             messages = redis_client.xreadgroup(
@@ -73,18 +85,6 @@ async def consume_redis_stream(redis_client: redis.Redis):
         except redis.exceptions.ConnectionError as e:
             print(f"Redis connection error: {e}, 5초 후 재시도")
             await asyncio.sleep(5)
-
-
-async def generate_recommendation(request_data: RequestData):
-    user_data, tags, qna, books = split_request(request_data)
-    documents = build_documents(books, config)
-    vectorstore = build_vectorstore(documents, embedding_model)
-    retriever = build_retriever(vectorstore, config)
-    rag_chain = build_rag_chain(llm, retriever, prompt, books)
-    result = await rag_chain.ainvoke(
-        {"query": tags, "user_profile": user_data, "qna": qna}
-    )
-    return result
 
 
 @asynccontextmanager

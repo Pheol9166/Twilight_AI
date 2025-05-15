@@ -5,7 +5,7 @@ from app.data.response import RecommendationResponse
 
 
 def get_filter_id_func(book_data):
-    name_to_id = {book["name"]: book["bookId"] for book in book_data}
+    name_to_id = {book.name: book.bookId for book in book_data}
 
     def filter_id(parsed_output):
         name = parsed_output['name']

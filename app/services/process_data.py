@@ -6,7 +6,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 def split_request(request: RequestData):
     user_data: UserData = request.memberInfo
     user_answer: List[QuestionAnswer] = request.memberInfo.questionAnswers
-    user_data.pop("questionAnswers", None)  # user 데이터에서 질문 & 답변 제거
+    user_data = user_data.model_dump(exclude=["questionAnswers"])
     tags: str = " ".join([answer.matchingTag for answer in user_answer])
     qna = [{answer.question: answer.userAnswer} for answer in user_answer]
     books: List[BookData] = request.bookInfo
@@ -16,11 +16,11 @@ def split_request(request: RequestData):
 def build_documents(books: List[BookData], config):
     documents = [
         Document(
-            page_content=book["description"],
+            page_content=book.description,
             metadata={
-                "id": book["bookId"],
-                "name": book["name"],
-                "author": book["author"]
+                "id": book.bookId,
+                "name": book.name,
+                "author": book.author
             },
         )
         for book in books
