@@ -9,12 +9,13 @@ def get_filter_id_func(book_data):
 
     def filter_id(parsed_output):
         name = parsed_output['name']
+        book_id = None
         if name in name_to_id:
             book_id = name_to_id.get(name)
-        if book_id is None:
-            return RecommendationResponse(book_id=0, AI_answer=parsed_output.get("reason", ""), member_id= 0)
-        else:
+        if book_id:
             return RecommendationResponse(book_id=book_id, AI_answer=parsed_output.get("reason", ""), member_id= 0)
+        else:
+            return RecommendationResponse(book_id=0, AI_answer=parsed_output.get("reason", ""), member_id= 0)            
 
     return filter_id
 

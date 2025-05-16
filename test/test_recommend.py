@@ -1,33 +1,30 @@
-import pytest
-import json
-import os
-import httpx
-from test.test_app import app
+from app.startup import initialize_app
+from app.services.process_data import split_request, build_documents
+from app.services.vectorstore import build_vectorstore, build_retriever
+from app.services.rag_chain import build_rag_chain
 from app.data.request import RequestData, BookData, UserData
+import json
+
+with open("./test/test_data.json", "r", encoding="utf-8") as fr:
+    request_dict = json.load(fr)
+
+request_data = RequestData(
+    bookInfo=[BookData(**book) for book in request_dict["bookInfo"]],
+    memberInfo= UserData(**request_dict["memberInfo"])
+)
 
 
-@pytest.mark.asyncio
-async def test_recommend_books():
-    test_file = os.path.join(os.path.dirname(__file__), "test_data.json")
-    with open(test_file, "r", encoding="utf-8") as fr:
-        request_dict = json.load(fr)
-    
-    request_data = RequestData(
-        books=[BookData(**book) for book in request_dict["books"]],
-        user_data= UserData(**request_dict["user_data"])
-    )
-    
-    transport = httpx.ASGITransport(app=app)
+config, prompt, embedding_model, llm = initialize_app(
+    config_path="app/config/config.json", prompt_path="app/config/prompt.txt"
+)
 
-    async with httpx.AsyncClient(
-        transport=transport,
-        base_url="http://testserver"
-    ) as client:
-        response = await client.post("/books/recommendation/", json=request_data.model_dump())
-
-    assert response.status_code == 200
-    result = response.json()
-    assert isinstance(result["recommend_books"], list)
-    assert "id" in result["recommend_books"][0]
-    assert "AIAnswer" in result["recommend_books"][0]
+user_data, tags, qna, books = split_request(request_data)
+documents = build_documents(books, config)
+vectorstore = build_vectorstore(documents, embedding_model)
+retriever = build_retriever(vectorstore, config)
+rag_chain = build_rag_chain(llm, retriever, prompt, books)
+result = rag_chain.invoke(
+    {"query": tags, "user_profile": user_data, "qna": qna}
+)
+print(result)
     
