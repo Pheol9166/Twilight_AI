@@ -1,3 +1,4 @@
+
 import redis.asyncio as redis
 import redis.exceptions
 import json
@@ -12,6 +13,7 @@ from app.services.rag_chain import build_rag_chain
 from app.startup import initialize_app
 import httpx
 import os
+import pprint
 
 
 redis_client = redis.Redis(host="localhost", port=6379, db=0)
@@ -22,7 +24,7 @@ STREAM_KEY = "ai:recommend"
 GROUP_NAME = "ai-consumers"
 
 
-async def send_result_to_backend(result: RecommendationResponse):
+async def send_result_to_backend(result: RecommendationResponse ):
     headers = {"X-AI-AUTH-TOKEN": AI_AUTH_TOKEN, "Content-Type": "application/json"}
 
     async with httpx.AsyncClient() as client:
@@ -31,7 +33,7 @@ async def send_result_to_backend(result: RecommendationResponse):
         )
 
     if response.status_code == 200:
-        print("전송 성공")
+        print("전송 성공!")
     else:
         print(f"전송 실패: {response.status_code}, {response.text}")
 
@@ -49,15 +51,15 @@ async def generate_recommendation(request_data: RequestData):
 
 
 async def consume_redis_stream(redis_client: redis.Redis):
-    while True:
-        try:
-            redis_client.xgroup_create(STREAM_KEY, GROUP_NAME, id="0", mkstream=True)
-        except redis.exceptions.ResponseError:
-            pass
-        except redis.exceptions.ConnectionError:
-            print("Redis 서버 연결 실패: 서버가 실행 중인지 확인하세요.")
-            return "Redis 서버 연결 실패"
+    try:
+        await redis_client.xgroup_create(STREAM_KEY, GROUP_NAME, id="0", mkstream=True)
+    except redis.exceptions.ResponseError:
+        pass
+    except redis.exceptions.ConnectionError:
+        print("Redis 서버 연결 실패: 서버가 실행 중인지 확인하세요.")
+        return
 
+    while True:
         try:
             messages = redis_client.xreadgroup(
                 groupname=GROUP_NAME,
@@ -67,18 +69,14 @@ async def consume_redis_stream(redis_client: redis.Redis):
                 block=0,
             )
 
-            for message in messages:
-                _, data = message
-                for msg_id, payload in data:
+            for stream, message_list in messages:
+                for msg_id, payload in message_list:
                     payload_data = json.loads(payload[b"payload"].decode("utf-8"))
-                    print("받은 데이터:", payload_data)
 
-                    await redis_client.xack(STREAM_KEY, GROUP_NAME, msg_id)
+                    redis_client.xack(STREAM_KEY, GROUP_NAME, msg_id)
 
                     request_data = RequestData(**payload_data)
-                    result: RecommendationResponse = await generate_recommendation(
-                        request_data
-                    )
+                    result: RecommendationResponse = await generate_recommendation(request_data)
                     result.member_id = request_data.memberInfo.memberId
 
                     await send_result_to_backend(result)
