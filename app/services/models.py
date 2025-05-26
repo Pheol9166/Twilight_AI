@@ -5,7 +5,6 @@ from pydantic import Field
 from langchain_huggingface import HuggingFaceEmbeddings
 
 
-# TODO: wrapper 안 쓰는 방법 찾기
 class HFChatCompletionLLM(LLM):
     model: str
     api_key: str
