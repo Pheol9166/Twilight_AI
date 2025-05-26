@@ -47,7 +47,7 @@ Twilight는 프로젝트는 사용자의 데이터에 기반하여 개인 맞춤
 
 ---
 ## 3. 모델
-  ![alt text](<제목을 입력해주세요_-002.jpg>)
+  <img src="./assets/model.jpg">
 
 - 기본적으로 LangChain 라이브러리와 HuggingFace를 사용해 모델을 설계했습니다. 다만 HuggingFace에서 로컬로 모델을 로드하기에는 하드웨어적 한계가 컸기 때문에, HuggingFace Inference API를 사용하여 질문과 답변을 API로 주고 받는 형태로 구성하였습니다. 하지만 HuggingFace Inference API와 LangChain을 연결하는 건 구현이 안되어 있기 때문에 직접 wrapper를 만들어 연결했습니다.
 
